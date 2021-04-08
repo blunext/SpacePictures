@@ -1,16 +1,22 @@
 package app
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
 
 type Provider interface {
-	GetLink(time.Time) string
+	GetLink(time.Time) (string, error)
+}
+
+type linkResponse struct {
+	link string
+	err  error
 }
 
 type request struct {
-	response chan string
+	response chan linkResponse
 	date     time.Time
 }
 
@@ -33,16 +39,17 @@ func runGoroutines(c *Collector, limit int) {
 		go func() {
 			for {
 				req := <-c.requestChannel
-				req.response <- c.provider.GetLink(req.date)
+				link, err := c.provider.GetLink(req.date)
+				req.response <- linkResponse{link: link, err: err}
 			}
 		}()
 	}
 }
 
-func (c *Collector) ProcessDates(from, to time.Time) []string {
+func (c *Collector) ProcessDates(from, to time.Time) ([]string, error) {
 	var wg sync.WaitGroup
 
-	response := make(chan string)
+	response := make(chan linkResponse)
 
 	dates := dateRange(from, to)
 	wg.Add(len(dates))
@@ -60,18 +67,24 @@ func (c *Collector) ProcessDates(from, to time.Time) []string {
 	}()
 
 	var links []string
-	for link := range response {
-		links = append(links, link)
-		//fmt.Println(link)
+	for linkResp := range response {
+		// if at least one url is not fetched correctly
+		// I assume that all requests are wrong
+		if linkResp.err != nil {
+			return nil, fmt.Errorf("at least one requested link is wrong: %w", linkResp.err)
+		}
+		links = append(links, linkResp.link)
 		wg.Done()
 	}
-	return links
+
+	return links, nil
 }
 
 func (c *Collector) process() {
 	for {
 		req := <-c.requestChannel
-		req.response <- c.provider.GetLink(req.date)
+		link, err := c.provider.GetLink(req.date)
+		req.response <- linkResponse{link: link, err: err}
 	}
 }
 

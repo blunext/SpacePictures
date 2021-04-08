@@ -13,22 +13,32 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
+type responseLinks struct {
+	Urls []string `json:"urls"`
+}
+
 func GetPictures(collector *app.Collector) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		w.Header().Set("Content-Type", "application/json")
 
 		startDate, endDate, err := dateValidator(r.URL.Query().Get("start_date"), r.URL.Query().Get("end_date"))
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(jsonFromStruct(errorResponse{Error: err.Error()}))
+			failedResponse(w, http.StatusBadRequest, err)
+			return
 		}
 
-		dates := collector.ProcessDates(startDate, endDate)
-		for _, d := range dates {
-			fmt.Println(d)
+		var links []string
+		links, err = collector.ProcessDates(startDate, endDate)
+		if err != nil {
+			failedResponse(w, http.StatusNotFound, err)
+			return
 		}
 
+		resp := responseLinks{Urls: links}
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonFromStruct(resp))
 	}
 }
 
@@ -58,10 +68,13 @@ func dateValidator(start, end string) (time.Time, time.Time, error) {
 func jsonFromStruct(s interface{}) []byte {
 	j, err := json.Marshal(s)
 	if err != nil {
-
-		// TODO: add serverity
-
-		log.Println("cannot marshal %v, err: %v", s, err)
+		log.Printf("cannot marshal %v, err: %v\n", s, err)
+		return []byte(fmt.Sprintf("{\"error\": \"cannot marshal: %v, %v\"}", s, err))
 	}
 	return j
+}
+
+func failedResponse(w http.ResponseWriter, status int, err error) {
+	w.WriteHeader(status)
+	w.Write(jsonFromStruct(errorResponse{Error: err.Error()}))
 }
