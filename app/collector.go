@@ -51,7 +51,7 @@ func (c *Collector) ProcessDates(from, to time.Time) ([]string, error) {
 
 	response := make(chan linkResponse)
 
-	dates := dateRange(from, to)
+	dates := DateRange(from, to)
 	wg.Add(len(dates))
 
 	go func() {
@@ -88,7 +88,7 @@ func (c *Collector) process() {
 	}
 }
 
-func dateRange(from, to time.Time) []time.Time {
+func DateRange(from, to time.Time) []time.Time {
 	var dates []time.Time
 	for !from.After(to) {
 		dates = append(dates, from)

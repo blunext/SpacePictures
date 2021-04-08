@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 var dates = []struct {
@@ -22,12 +23,18 @@ var dates = []struct {
 }
 
 func TestEncodeDecodeMessage(t *testing.T) {
+	var date time.Time
+
 	for _, d := range dates {
-		_, _, err := dateValidator(d.from, d.to)
+		from, _, err := dateValidator(d.from, d.to)
 		if d.result {
 			assert.Nil(t, err, fmt.Sprintf("invalid date test: %s, %s, %v", d.from, d.to, d.result))
+
+			date, err = time.Parse("2006-01-02", d.from)
+			assert.Equal(t, date, from, "date conversion failed")
 		} else {
 			assert.Error(t, err, fmt.Sprintf("invalid date test: %s, %s, %v", d.from, d.to, d.result))
 		}
+
 	}
 }
