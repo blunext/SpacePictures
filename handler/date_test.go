@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ var dates = []struct {
 
 func TestEncodeDecodeMessage(t *testing.T) {
 	for _, d := range dates {
-		err := dateValidator(d.from, d.to)
+		_, _, err := dateValidator(d.from, d.to)
 		if d.result {
 			assert.Nil(t, err, fmt.Sprintf("invalid date test: %s, %s, %v", d.from, d.to, d.result))
 		} else {
