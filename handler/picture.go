@@ -60,7 +60,7 @@ func dateValidator(start, end string) (time.Time, time.Time, error) {
 
 	if startTime.After(endTime) {
 		log.Printf("startTime date is older than endTime date: %v, %v", startTime, endTime)
-		return startTime, endTime, fmt.Errorf("cannot parse endTime date")
+		return startTime, endTime, fmt.Errorf("startTime date is older than endTime date: %v, %v", startTime, endTime)
 	}
 	return startTime, endTime, nil
 }
