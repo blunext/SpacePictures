@@ -48,18 +48,18 @@ func dateValidator(start, end string) (time.Time, time.Time, error) {
 
 	startTime, err = time.Parse("2006-01-02", start)
 	if err != nil {
-		log.Printf("cannot parse startTime date: %s", start)
+		log.Printf("cannot parse start_date date: %s", start)
 		return startTime, startTime, fmt.Errorf("cannot parse start_date")
 	}
 
 	endTime, err = time.Parse("2006-01-02", end)
 	if err != nil {
-		log.Printf("cannot parse endTime date: %s", end)
+		log.Printf("cannot parse end_date date: %s", end)
 		return startTime, endTime, fmt.Errorf("cannot parse end_date")
 	}
 
 	if startTime.After(endTime) {
-		log.Printf("startTime date is older than endTime date: %v, %v", startTime, endTime)
+		log.Printf("start_data is older than end_date: %v, %v", startTime, endTime)
 		return startTime, endTime, fmt.Errorf("start_data is older than end_date: %v, %v", startTime, endTime)
 	}
 	return startTime, endTime, nil
