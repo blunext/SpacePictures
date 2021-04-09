@@ -6,18 +6,17 @@ import (
 )
 
 type nasaMock struct {
-	apiKey string
-	dates  map[time.Time]bool
+	dates map[time.Time]bool
 }
 
-func NewNasaMock(apiKey string) *nasaMock {
-	n := nasaMock{apiKey: apiKey, dates: make(map[time.Time]bool)}
+func NewNasaMock() *nasaMock {
+	n := nasaMock{dates: make(map[time.Time]bool)}
 	return &n
 }
 
 func (n *nasaMock) GetLink(date time.Time) (string, error) {
 	if _, ok := n.dates[date]; ok {
-		return "ok", nil
+		return date.Format("2006-01-02"), nil
 	}
 	return "", errors.New("error")
 }
