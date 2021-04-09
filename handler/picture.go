@@ -3,6 +3,7 @@ package handler
 import (
 	"GogoSpace/app"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,6 +34,11 @@ func GetPictures(collector *app.Collector) http.HandlerFunc {
 		links, err = collector.ProcessDates(startDate, endDate)
 		if err != nil {
 			failedResponse(w, http.StatusNotFound, err)
+			return
+		}
+
+		if len(links) == 0 {
+			failedResponse(w, http.StatusNotFound, errors.New("no picture found on provided date ranges"))
 			return
 		}
 
