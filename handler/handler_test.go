@@ -60,7 +60,7 @@ func TestConcurrencyPipeline(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		for _, v := range concurrencyRanges {
 			wg.Add(1)
-			concurrentClientTest(t, collector, &wg, v.from, v.to, v.exclusion)
+			go concurrentClientTest(t, collector, &wg, v.from, v.to, v.exclusion)
 		}
 	}
 
