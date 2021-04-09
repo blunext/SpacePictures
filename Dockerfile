@@ -7,5 +7,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -ldflags "-s -w" -v -o serve
 
 FROM alpine:3
 COPY --from=goBuilder /app/server /server
-EXPOSE 8080
+ENV API_KEY DEMO_KEY
+ENV CONCURRENT_REQUESTS 5
+ENV PORT 8080
+
+EXPOSE $PORT
 CMD ["/server"]
