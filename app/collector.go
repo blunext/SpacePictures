@@ -67,25 +67,24 @@ func (c *Collector) ProcessDates(from, to time.Time) ([]string, error) {
 	}()
 
 	var links []string
+	valid := true
+	var lastErr error
 	for linkResp := range response {
 		// if at least one url is not fetched correctly
 		// I assume that all requests are wrong
 		if linkResp.err != nil {
-			return nil, fmt.Errorf("at least one requested link is wrong: %w", linkResp.err)
+			valid = false
+			lastErr = linkResp.err
 		}
 		links = append(links, linkResp.link)
 		wg.Done()
 	}
 
-	return links, nil
-}
-
-func (c *Collector) process() {
-	for {
-		req := <-c.requestChannel
-		link, err := c.provider.GetLink(req.date)
-		req.response <- linkResponse{link: link, err: err}
+	if !valid {
+		return nil, fmt.Errorf("at least one requested date did not reveive correctly %w. Maybe you reach OVER_RATE_LIMIT for your api key", lastErr)
 	}
+
+	return links, nil
 }
 
 func DateRange(from, to time.Time) []time.Time {
