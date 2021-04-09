@@ -2,30 +2,30 @@ package linkProvider
 
 import (
 	"GogoSpace/app"
-	"errors"
 	"time"
 )
 
-type nasaMock struct {
-	dates map[time.Time]bool
+type NasaMock struct {
+	dates   map[time.Time]bool
+	errDate time.Time
 }
 
-func NewNasaMock() *nasaMock {
-	n := nasaMock{dates: make(map[time.Time]bool)}
+func NewNasaMock() *NasaMock {
+	n := NasaMock{dates: make(map[time.Time]bool)}
 	return &n
 }
 
-func (n *nasaMock) GetLink(date time.Time) app.LinkResponse {
+func (n *NasaMock) GetLink(date time.Time) app.LinkResponse {
 	if _, ok := n.dates[date]; ok {
 		return app.LinkResponse{Link: date.Format("2006-01-02"), PictureAvailable: true}
 	}
-	return app.LinkResponse{Err: errors.New("error")}
+	return app.LinkResponse{}
 }
 
-func (n *nasaMock) AddDate(date time.Time) {
+func (n *NasaMock) AddDate(date time.Time) {
 	n.dates[date] = true
 }
 
-func (n *nasaMock) RemoveDate(date time.Time) {
+func (n *NasaMock) RemoveDate(date time.Time) {
 	delete(n.dates, date)
 }
