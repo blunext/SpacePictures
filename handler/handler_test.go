@@ -36,13 +36,18 @@ func TestStatuses(t *testing.T) {
 	collector := app.NewCollector(nasaMock, 5)
 
 	code, _ := makeRequest(t, GetPictures(collector), "", "")
-	assert.Equal(t, false, code == http.StatusOK, fmt.Sprintf("handler test failed for empty entries"))
+	assert.Equal(t, http.StatusBadRequest, code, fmt.Sprintf("handler test failed for empty entries"))
 
 	code, _ = makeRequest(t, GetPictures(collector), "2020-01-01", "")
-	assert.Equal(t, false, code == http.StatusOK, fmt.Sprintf("handler test failed bad request, missing end date"))
+	assert.Equal(t, http.StatusBadRequest, code, fmt.Sprintf("handler test failed bad request, missing end date"))
 
 	code, _ = makeRequest(t, GetPictures(collector), "", "2020-12-31")
-	assert.Equal(t, false, code == http.StatusOK, fmt.Sprintf("handler test failed bad request, missing start date"))
+	assert.Equal(t, http.StatusBadRequest, code, fmt.Sprintf("handler test failed bad request, missing start date"))
+
+	errDate, _ := time.Parse("2006-01-02", "2000-02-01")
+	nasaMock.SetErrDate(errDate)
+	code, _ = makeRequest(t, GetPictures(collector), "2000-01-01", "2000-12-31")
+	assert.Equal(t, http.StatusNotFound, code, fmt.Sprintf("handler test failed bad request, missing start date"))
 
 }
 
