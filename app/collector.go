@@ -7,16 +7,17 @@ import (
 )
 
 type Provider interface {
-	GetLink(time.Time) (string, error)
+	GetLink(time.Time) LinkResponse
 }
 
-type linkResponse struct {
-	link string
-	err  error
+type LinkResponse struct {
+	Link             string
+	PictureAvailable bool
+	Err              error
 }
 
 type request struct {
-	response chan linkResponse
+	response chan LinkResponse
 	date     time.Time
 }
 
@@ -39,8 +40,7 @@ func runGoroutines(c *Collector, limit int) {
 		go func() {
 			for {
 				req := <-c.requestChannel
-				link, err := c.provider.GetLink(req.date)
-				req.response <- linkResponse{link: link, err: err}
+				req.response <- c.provider.GetLink(req.date)
 			}
 		}()
 	}
@@ -49,7 +49,7 @@ func runGoroutines(c *Collector, limit int) {
 func (c *Collector) ProcessDates(from, to time.Time) ([]string, error) {
 	var wg sync.WaitGroup
 
-	response := make(chan linkResponse)
+	response := make(chan LinkResponse)
 
 	dates := DateRange(from, to)
 	wg.Add(len(dates))
@@ -72,16 +72,19 @@ func (c *Collector) ProcessDates(from, to time.Time) ([]string, error) {
 	for linkResp := range response {
 		// if at least one url is not fetched correctly
 		// I assume that all requests are wrong
-		if linkResp.err != nil {
+		if linkResp.Err != nil {
 			valid = false
-			lastErr = linkResp.err
+			lastErr = linkResp.Err
 		}
-		links = append(links, linkResp.link)
+		// omitting responses from days where picture is not available
+		if linkResp.PictureAvailable {
+			links = append(links, linkResp.Link)
+		}
 		wg.Done()
 	}
 
 	if !valid {
-		return nil, fmt.Errorf("at least one requested date did not reveive correctly %w. Maybe you reach OVER_RATE_LIMIT for your api key", lastErr)
+		return nil, fmt.Errorf("at least one requested date did not reveive correctly. Maybe you reach OVER_RATE_LIMIT for your api key %w", lastErr)
 	}
 
 	return links, nil

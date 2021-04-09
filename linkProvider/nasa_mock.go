@@ -1,6 +1,7 @@
 package linkProvider
 
 import (
+	"GogoSpace/app"
 	"errors"
 	"time"
 )
@@ -14,11 +15,11 @@ func NewNasaMock() *nasaMock {
 	return &n
 }
 
-func (n *nasaMock) GetLink(date time.Time) (string, error) {
+func (n *nasaMock) GetLink(date time.Time) app.LinkResponse {
 	if _, ok := n.dates[date]; ok {
-		return date.Format("2006-01-02"), nil
+		return app.LinkResponse{Link: date.Format("2006-01-02"), PictureAvailable: true}
 	}
-	return "", errors.New("error")
+	return app.LinkResponse{Err: errors.New("error")}
 }
 
 func (n *nasaMock) AddDate(date time.Time) {

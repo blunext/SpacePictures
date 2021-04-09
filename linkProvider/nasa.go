@@ -12,7 +12,10 @@ import (
 
 // GET https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=2019-12-06
 
-const nasaUrl = "https://api.nasa.gov/planetary/apod?"
+const (
+	nasaUrl         = "https://api.nasa.gov/planetary/apod?"
+	rateLimitHeader = "X-RateLimit-Remaining"
+)
 
 type Response struct {
 	Url string `json:"url"`
@@ -27,18 +30,25 @@ func NewNasa(apiKey string) app.Provider {
 	return &n
 }
 
-func (n nasa) GetLink(date time.Time) (string, error) {
+func (n nasa) GetLink(date time.Time) app.LinkResponse {
 
 	url := n.getUrl(date)
 
 	resp, err := http.Get(url)
 	defer resp.Body.Close()
 	if err != nil {
-		return "", fmt.Errorf("cannot get url %v: %w", url, err)
+		return app.LinkResponse{Err: fmt.Errorf("cannot get url %v: %w", url, err)}
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("wrong status: %d, on request %s", resp.StatusCode, url)
+	switch {
+	case resp.StatusCode == http.StatusNotFound:
+		// there are some days that picture is not present
+		// https://api.nasa.gov/planetary/apod?api_key=DEMO_API&date=2020-06-10
+		return app.LinkResponse{}
+	case resp.StatusCode != http.StatusOK:
+		// Note: X-RateLimit-Remaining header seems not to show proper value...
+		return app.LinkResponse{Err: fmt.Errorf("wrong status %d, on request %s, X-RateLimit-Remaining %v",
+			resp.StatusCode, url, resp.Header.Get(rateLimitHeader))}
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -46,10 +56,10 @@ func (n nasa) GetLink(date time.Time) (string, error) {
 	response := Response{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return "", fmt.Errorf("marshal response error: %w", err)
+		return app.LinkResponse{Err: fmt.Errorf("marshal response error: %w", err)}
 	}
 
-	return response.Url, nil
+	return app.LinkResponse{Link: response.Url, PictureAvailable: true}
 }
 
 func (n nasa) getUrl(date time.Time) string {
