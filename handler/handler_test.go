@@ -47,8 +47,7 @@ func TestStatuses(t *testing.T) {
 	errDate, _ := time.Parse("2006-01-02", "2000-02-01")
 	nasaMock.SetErrDate(errDate)
 	code, _ = makeRequest(t, GetPictures(collector), "2000-01-01", "2000-12-31")
-	assert.Equal(t, http.StatusNotFound, code, fmt.Sprintf("handler test failed bad request, missing start date"))
-
+	assert.Equal(t, http.StatusNotFound, code, fmt.Sprintf("handler test failed on case where link provider returns error"))
 }
 
 func TestConcurrencyPipeline(t *testing.T) {
