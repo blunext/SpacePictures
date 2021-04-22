@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"GogoSpace/app"
+	"SpacePictures/app"
 	"encoding/json"
 	"errors"
 	"fmt"

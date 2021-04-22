@@ -1,4 +1,4 @@
-module GogoSpace
+module SpacePictures
 
 go 1.16
 

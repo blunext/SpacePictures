@@ -1,9 +1,9 @@
 package main
 
 import (
-	"GogoSpace/app"
-	"GogoSpace/handler"
-	"GogoSpace/linkProvider"
+	"SpacePictures/app"
+	"SpacePictures/handler"
+	"SpacePictures/linkProvider"
 	"fmt"
 	"log"
 	"net/http"

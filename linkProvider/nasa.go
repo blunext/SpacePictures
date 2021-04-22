@@ -1,7 +1,7 @@
 package linkProvider
 
 import (
-	"GogoSpace/app"
+	"SpacePictures/app"
 	"encoding/json"
 	"fmt"
 	"io"
